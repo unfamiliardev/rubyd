@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>rubyd</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #0b1020;
+      --fg: #e8ecff;
+      --card: rgba(255,255,255,0.08);
+      --accent: #6fe3ff;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f4f7ff;
+        --fg: #18233d;
+        --card: rgba(20,35,61,0.08);
+        --accent: #006de0;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+      background: radial-gradient(circle at 20% 20%, var(--card), transparent 40%), var(--bg);
+      color: var(--fg);
+    }
+    main {
+      width: min(680px, 92vw);
+      padding: 2.25rem;
+      border-radius: 18px;
+      background: var(--card);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    h1 { margin: 0 0 .65rem; font-size: clamp(2rem, 4vw, 3rem); }
+    p { margin: .25rem 0; line-height: 1.6; font-size: 1.05rem; }
+    strong { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Welcome to rubyd</h1>
+    <p>If you see this page, <strong>rubyd is working.</strong></p>
+  </main>
+</body>
+</html>
