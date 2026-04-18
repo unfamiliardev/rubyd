@@ -9,6 +9,7 @@ require "rubyd/parser"
 require "rubyd/router"
 require "rubyd/plugin"
 require "rubyd/logger"
+require "rubyd/php_lite"
 
 module Rubyd
   class Server
@@ -219,20 +220,18 @@ module Rubyd
     end
 
     def process_request(request)
-      path = URI(request.path).path
-      request.path = path
+      uri = URI(request.path)
+      request.path = uri.path
 
       routed = router.resolve(request)
       return routed if routed
 
-      serve_static(request)
+      serve_static(request, query_string: uri.query.to_s)
     rescue URI::InvalidURIError
       Response.new(status: 400, body: "Bad Request")
     end
 
-    def serve_static(request)
-      return Response.new(status: 405, body: "Method Not Allowed") unless request.method == "GET"
-
+    def serve_static(request, query_string: "")
       relative = request.path == "/" ? "/index.html" : request.path
       full_path = File.expand_path(".#{relative}", config.root)
       root_path = File.expand_path(config.root)
@@ -240,11 +239,55 @@ module Rubyd
       return Response.new(status: 404, body: "Not Found") unless full_path.start_with?(root_path)
       return Response.new(status: 404, body: "Not Found") unless File.file?(full_path)
 
-      body = File.binread(full_path)
       ext = File.extname(full_path)
+
+      if ext == ".php"
+        return execute_php(full_path, request: request, query_string: query_string)
+      end
+
+      if ext == ".rubyd"
+        return Response.new(status: 405, body: "Method Not Allowed") unless request.method == "GET"
+
+        return render_rubyd_template(full_path, request: request, query_string: query_string)
+      end
+
+      return Response.new(status: 405, body: "Method Not Allowed") unless request.method == "GET"
+
+      body = File.binread(full_path)
       content_type = mime_type(ext)
 
       Response.new(body: body, headers: { "Content-Type" => content_type })
+    end
+
+    def execute_php(script_path, request:, query_string:)
+      result = PhpLite.render_file(script_path, request: request, query_string: query_string)
+      Response.new(status: result.status, headers: result.headers, body: result.body)
+    rescue StandardError => e
+      logger.error("PHP runtime error for #{script_path}: #{e.class}: #{e.message}")
+      Response.new(status: 500, body: "PHP handler error")
+    end
+
+    def render_rubyd_template(path, request:, query_string:)
+      template = File.read(path)
+      vars = {
+        "method" => request.method,
+        "path" => request.path,
+        "query" => query_string.to_s,
+        "remote_addr" => request.remote_addr.to_s,
+        "time" => Time.now.utc.iso8601
+      }
+
+      rendered = template.gsub(/\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}\}/) do
+        vars.fetch(Regexp.last_match(1), "")
+      end
+
+      Response.new(
+        body: rendered,
+        headers: { "Content-Type" => "text/html; charset=utf-8" }
+      )
+    rescue StandardError => e
+      logger.error("rubyd template error for #{path}: #{e.class}: #{e.message}")
+      Response.new(status: 500, body: "rubyd template error")
     end
 
     def mime_type(ext)
@@ -254,6 +297,7 @@ module Rubyd
         ".js" => "application/javascript; charset=utf-8",
         ".json" => "application/json; charset=utf-8",
         ".txt" => "text/plain; charset=utf-8",
+        ".rubyd" => "text/html; charset=utf-8",
         ".png" => "image/png",
         ".jpg" => "image/jpeg",
         ".jpeg" => "image/jpeg",

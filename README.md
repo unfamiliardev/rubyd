@@ -16,6 +16,8 @@ a plugin system, and a built-in benchmark client.
 - Access and error logging to files
 - Built-in load tool: `rubyd bench`
 - Automatic default website in `www/index.html`
+- Dynamic PHP via CGI execution (`.php`)
+- Native `rubyd` template pages (`.rubyd`)
 
 ## Project Layout
 
@@ -113,3 +115,42 @@ Plugins live in `plugins/*.rb` and should:
 3. Register with `Rubyd::Plugin.register(:name, PluginClass)`
 
 See `plugins/echo.rb` for a working example.
+
+## Dynamic Content
+
+### PHP support (`.php`)
+
+`rubyd` includes a built-in PHP-like runtime (no external `php-cgi` required).
+
+Supported today in native mode:
+
+- `<?php ... ?>` and `<?= ... ?>`
+- `echo ...;`
+- variable assignment (`$name = ...;`)
+- `$_GET[...]` and `$_SERVER[...]`
+- null-coalescing (`??`) and concatenation (`.`)
+- `header(...)`
+- `gmdate(...)` and `htmlspecialchars(...)`
+
+Examples:
+
+```bash
+ruby bin/rubyd start
+# then open http://127.0.0.1:9292/info.php?name=rubyd
+```
+
+### rubyd template language (`.rubyd`)
+
+Files with `.rubyd` are rendered as HTML with simple placeholders:
+
+- `{{method}}`
+- `{{path}}`
+- `{{query}}`
+- `{{remote_addr}}`
+- `{{time}}`
+
+Example:
+
+```bash
+# open http://127.0.0.1:9292/example.rubyd?demo=1
+```

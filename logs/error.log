@@ -1,3 +1,2 @@
-[2026-04-18T09:43:58+02:00] [INFO] Loaded plugin echo
-[2026-04-18T09:43:58+02:00] [WARN] Signal HUP not supported on this platform
-[2026-04-18T09:43:58+02:00] [INFO] rubyd listening on 0.0.0.0:9292
+[2026-04-18T09:59:46+02:00] [INFO] Loaded plugin echo
+[2026-04-18T09:59:46+02:00] [INFO] rubyd listening on 0.0.0.0:9292
