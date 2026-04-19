@@ -13,10 +13,20 @@ a plugin system, and a built-in benchmark client.
 - Signal handling (`SIGINT`, `SIGTERM`, `SIGHUP` when supported)
 - Ruby DSL configuration (`config.rb`)
 - Plugin hooks (`before_request`, `after_response`) + route registration
-- Access and error logging to files
+- Access and error logging to files with rotation
 - Built-in load tool: `rubyd bench`
 - Automatic default website in `www/index.html`
-- Dynamic PHP via CGI execution (`.php`)
+- Keep-alive, graceful connection draining, and request middleware pipeline
+- TLS listener support via Ruby OpenSSL
+- WebSocket handshake + text echo loop
+- Virtual hosts (host header to root mapping)
+- Reverse proxy rules
+- Rate limiting + IP allow/block lists + optional basic auth
+- Caching (`ETag`, `Last-Modified`, `Cache-Control`) + range requests
+- Compression (`gzip`, optional `br` when `brotli` gem is present)
+- Upload endpoint (`/upload`) with multipart handling
+- Metrics endpoint (`/metrics`)
+- Directory listing + custom error pages (`www/errors/*.html`)
 - Native `rubyd` template pages (`.rubyd`)
 
 ## Project Layout
@@ -127,10 +137,14 @@ Supported today in native mode:
 - `<?php ... ?>` and `<?= ... ?>`
 - `echo ...;`
 - variable assignment (`$name = ...;`)
-- `$_GET[...]` and `$_SERVER[...]`
-- null-coalescing (`??`) and concatenation (`.`)
+- `$_GET[...]`, `$_POST[...]`, and `$_SERVER[...]`
+- null-coalescing (`??`), concatenation (`.`), and comparisons (`==`, `!=`, `>`, `<`, `>=`, `<=`)
 - `header(...)`
 - `gmdate(...)` and `htmlspecialchars(...)`
+- `include`, `include_once`
+- `if (...) { ... } else { ... }`
+- `foreach (...) { ... }`
+- `function name(...) { ... }` + `return`
 
 Examples:
 
@@ -154,3 +168,10 @@ Example:
 ```bash
 # open http://127.0.0.1:9292/example.rubyd?demo=1
 ```
+
+## Built-in Endpoints
+
+- `GET /health` basic health probe
+- `GET /metrics` JSON runtime metrics
+- `GET /upload` upload form
+- `POST /upload` multipart upload target

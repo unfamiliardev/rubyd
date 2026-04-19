@@ -5,14 +5,28 @@ module Rubyd
 
   class Response
     REASONS = {
+      101 => "Switching Protocols",
       200 => "OK",
+      206 => "Partial Content",
+      301 => "Moved Permanently",
+      302 => "Found",
+      304 => "Not Modified",
+      400 => "Bad Request",
+      401 => "Unauthorized",
+      403 => "Forbidden",
       201 => "Created",
       204 => "No Content",
-      400 => "Bad Request",
       404 => "Not Found",
       405 => "Method Not Allowed",
       408 => "Request Timeout",
-      500 => "Internal Server Error"
+      413 => "Payload Too Large",
+      416 => "Range Not Satisfiable",
+      426 => "Upgrade Required",
+      429 => "Too Many Requests",
+      500 => "Internal Server Error",
+      502 => "Bad Gateway",
+      503 => "Service Unavailable",
+      505 => "HTTP Version Not Supported"
     }.freeze
 
     attr_accessor :status, :headers, :body
@@ -27,7 +41,7 @@ module Rubyd
     end
 
     def to_http
-      @headers["Content-Length"] = @body.bytesize.to_s
+      @headers["Content-Length"] ||= @body.bytesize.to_s
       lines = ["HTTP/1.1 #{@status} #{REASONS.fetch(@status, "Unknown")}"]
       @headers.each { |k, v| lines << "#{k}: #{v}" }
       lines << ""
